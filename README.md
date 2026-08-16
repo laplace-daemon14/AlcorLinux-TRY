@@ -45,6 +45,7 @@ Derleme tamamlandığında `out/` klasöründe önyüklenebilir bir `.iso` dosya
 
 ## 💿 ISO'yu Test Etme
 
+
 Derlenen ISO'yu bir sanal makinede (QEMU örneği) hızlıca test edebilirsiniz:
 
 ```bash
