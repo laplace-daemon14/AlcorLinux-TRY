@@ -61,10 +61,3 @@ Katkılar memnuniyetle karşılanır! Bir özellik eklemeden veya hata düzeltme
 3. Değişikliklerinizi commit'leyin
 4. Dalınızı push'layın ve bir Pull Request açın
 
-## 📄 Lisans
-
-Lisans bilgisi henüz belirtilmemiştir. Eklemek isterseniz bir `LICENSE` dosyası oluşturmanız önerilir.
-
-## ⚠️ Not
-
-Bu proje geliştirme aşamasındadır ("TRY" adından da anlaşılacağı gibi deneysel bir profildir). Üretim ortamında kullanmadan önce dikkatli test edilmesi tavsiye edilir.
