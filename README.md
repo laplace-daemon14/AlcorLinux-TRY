@@ -1,6 +1,5 @@
 # AlcorLinux
-
-**AlcorLinux**, [archiso](https://gitlab.archlinux.org/archlinux/archiso) altyapısı üzerine inşa edilmiş, Arch Linux tabanlı özel bir Live/Kurulum ISO profilidir.
+**Alcor GNU/LINUX** keryn, yusufprompt-dev ve laplace tarafından yapılan, Arch Tabanlı bir işletim sistemidir.
 
 ## ✨ Hakkında
 
