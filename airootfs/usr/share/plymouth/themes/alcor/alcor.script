@@ -1,0 +1,34 @@
+TOTAL_FRAMES = 63;
+
+# 1
+Window.SetBackgroundTopColor(0, 0, 0);
+Window.SetBackgroundBottomColor(0, 0, 0);
+
+# 2
+for (i = 1; i <= TOTAL_FRAMES; i++) {
+    if (i < 10)
+        frame_name = "frame_0" + i + ".png";
+    else
+        frame_name = "frame_" + i + ".png";
+        
+    raw_image = Image(frame_name);
+    images[i] = raw_image.Scale(raw_image.GetWidth() * 0.30, raw_image.GetHeight() * 0.30);
+}
+
+# 3
+progress = 1;
+sprite = Sprite(images[1]);
+
+logo_x = Window.GetWidth() / 2 - images[1].GetWidth() / 2;
+logo_y = Window.GetHeight() / 2 - images[1].GetHeight() / 2;
+sprite.SetPosition(logo_x, logo_y);
+
+# 4
+fun refresh_callback () {
+    sprite.SetImage(images[Math.Int(progress)]);
+    progress++;
+    if (progress > TOTAL_FRAMES)
+        progress = 1;
+}
+
+Plymouth.SetRefreshFunction(refresh_callback);

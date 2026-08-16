@@ -1,0 +1,8 @@
+NAME="Alcor Linux"
+PRETTY_NAME="Alcor GNU/Linux"
+ID=alcor
+BUILD_ID=rolling
+ANSI_COLOR="0;36"
+HOME_URL="https://alcorlinux.org/"
+SUPPORT_URL="https://alcorlinux.org/support"
+BUG_REPORT_URL="https://alcorlinux.org/bugs"

@@ -1,0 +1,202 @@
+#!/usr/bin/env bash
+# Alcor Linux First Boot Setup Script
+# Runs on tty1 to configure hostname, user, and SDDM
+# yusufprompt - laplace - keryn
+
+set -euo pipefail
+
+CONFIG_FILE="/etc/alcor-setup-done"
+LOG_FILE="/var/log/alcor-firstboot.log"
+
+log() {
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] $*" | tee -a "$LOG_FILE"
+}
+
+error() {
+    log "ERROR: $*"
+    exit 1
+}
+
+require_root() {
+    if [[ ${EUID} -ne 0 ]]; then
+        error "This script must be run as root."
+    fi
+}
+
+is_setup_done() {
+    [[ -f "$CONFIG_FILE" ]]
+}
+
+mark_setup_done() {
+    touch "$CONFIG_FILE"
+}
+
+prompt_input() {
+    local prompt="$1"
+    local var_name="$2"
+    local default="${3:-}"
+    local validator="${4:-}"
+    local input
+
+    while true; do
+        if [[ -n "$default" ]]; then
+            read -rp "$prompt [$default]: " input
+            input="${input:-$default}"
+        else
+            read -rp "$prompt: " input
+        fi
+
+        if [[ -z "$input" ]]; then
+            echo "Input cannot be empty. Please try again."
+            continue
+        fi
+
+        if [[ -n "$validator" ]] && ! [[ "$input" =~ $validator ]]; then
+            echo "Invalid format. Please try again."
+            continue
+        fi
+
+        printf -v "$var_name" '%s' "$input"
+        break
+    done
+}
+
+prompt_password() {
+    local prompt="$1"
+    local var_name="$2"
+    local pass1 pass2
+
+    while true; do
+        read -rsp "$prompt: " pass1
+        echo
+        read -rsp "Confirm password: " pass2
+        echo
+
+        if [[ "$pass1" != "$pass2" ]]; then
+            echo "Passwords do not match. Please try again."
+            continue
+        fi
+
+        if [[ ${#pass1} -lt 8 ]]; then
+            echo "Password must be at least 8 characters."
+            continue
+        fi
+
+        printf -v "$var_name" '%s' "$pass1"
+        break
+    done
+}
+
+configure_hostname() {
+    local hostname="$1"
+    log "Setting hostname to: $hostname"
+    echo "$hostname" > /etc/hostname
+    hostnamectl set-hostname "$hostname" 2>/dev/null || true
+
+    cat > /etc/hosts <<EOF
+127.0.0.1   localhost
+::1         localhost
+127.0.1.1   $hostname.localdomain $hostname
+EOF
+}
+
+configure_user() {
+    local username="$1"
+    local password="$2"
+
+    log "Creating user: $username"
+
+    if id "$username" &>/dev/null; then
+        log "User $username already exists, skipping useradd"
+    else
+        useradd -m -G wheel,video,audio,storage,power,network -s /bin/bash "$username" \
+            || error "Failed to create user $username"
+    fi
+
+    # Şifreyi process listesinde göstermeden ayarla
+    chpasswd <<< "${username}:${password}" || error "Failed to set password"
+
+    if grep -q '^# %wheel ALL=(ALL:ALL) ALL' /etc/sudoers; then
+        sed -i 's/^# %wheel ALL=(ALL:ALL) ALL/%wheel ALL=(ALL:ALL) ALL/' /etc/sudoers
+    fi
+
+    mkdir -p "/home/$username/.config"
+    chown -R "$username:$username" "/home/$username"
+}
+
+configure_sddm() {
+    local username="$1"
+
+    log "Configuring SDDM for auto-login: $username"
+
+    mkdir -p /etc/sddm.conf.d
+
+    cat > /etc/sddm.conf.d/autologin.conf <<EOF
+[Autologin]
+User=$username
+Session=xfce.desktop
+Relogin=false
+
+[General]
+InputMethod=fcitx5
+
+[Theme]
+Current=breeze
+EOF
+
+    systemctl enable sddm.service
+}
+
+disable_tty_autologin() {
+    log "Disabling TTY auto-login"
+    mkdir -p /etc/systemd/system/getty@tty1.service.d
+    cat > /etc/systemd/system/getty@tty1.service.d/override.conf <<EOF
+[Service]
+ExecStart=
+ExecStart=-/usr/bin/agetty --noreset --noclear - \$TERM
+EOF
+    systemctl daemon-reload
+}
+
+cleanup_firstboot_service() {
+    log "Disabling first-boot service (won't run again)"
+    systemctl disable alcor-firstboot.service 2>/dev/null || true
+}
+
+main() {
+    require_root
+
+    if is_setup_done; then
+        log "Setup already completed, exiting"
+        exit 0
+    fi
+
+    clear
+    echo "========================================"
+    echo "  Alcor Linux - First Boot Configuration"
+    echo "========================================"
+    echo
+
+    local username hostname password
+
+    prompt_input "Enter username" username "alcor" '^[a-z_][a-z0-9_-]{0,31}$'
+    prompt_input "Enter hostname" hostname "alcorlinux" '^[a-zA-Z0-9-]{1,63}$'
+    prompt_password "Enter password" password
+
+    echo
+    log "Starting configuration..."
+
+    configure_hostname "$hostname"
+    configure_user "$username" "$password"
+    configure_sddm "$username"
+    disable_tty_autologin
+    cleanup_firstboot_service
+
+    mark_setup_done
+
+    log "Configuration complete! Rebooting in 5 seconds..."
+    sleep 5
+    reboot
+}
+
+main "$@"

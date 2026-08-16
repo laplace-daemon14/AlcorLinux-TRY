@@ -1,0 +1,11 @@
+[Desktop Entry]
+Encoding=UTF-8
+Version=0.94
+Type=Application
+Name=Xcape Super Tuşu Ayarı
+Comment=Super is open's whisker menu
+Exec=xcape -e "Super_L=Control_L|Alt_L|Shift_L|Super_L|w"
+OnlyShowIn=XFCE;
+StartupNotify=false
+Terminal=false
+Hidden=false

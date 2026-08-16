@@ -1,0 +1,2 @@
+# Live ortamda alcor kullanıcısına parolasız sudo yetkisi
+alcor ALL=(ALL) NOPASSWD: ALL

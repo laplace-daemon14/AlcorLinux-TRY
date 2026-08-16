@@ -1,0 +1,8 @@
+[Plymouth Theme]
+Name=Alcor Linux Theme
+Description=Alcor Linux Static Logo Theme
+ModuleName=script
+
+[script]
+ImageDir=/usr/share/plymouth/themes/alcor
+ScriptFile=/usr/share/plymouth/themes/alcor/alcor.script
