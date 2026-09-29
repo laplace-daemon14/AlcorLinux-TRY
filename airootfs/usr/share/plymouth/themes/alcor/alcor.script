@@ -1,0 +1,46 @@
+Window.SetBackgroundTopColor(0, 0, 0);
+Window.SetBackgroundBottomColor(0, 0, 0);
+
+INTRO_END = 78;     # İlk 78 kare 1 kez oynar (Intro)
+TOTAL_FRAMES = 106; # 78-106 arası sonsuz döngüye girer (Loop)
+
+# --- HIZ AYARI ---
+# 1.0 = Normal hız
+# 0.5 = Yarı yarıya yavaş (Her kare ekranda 2 kat daha uzun kalır)
+# 0.25 = Çok yavaş (Her kare ekranda 4 kat daha uzun kalır)
+ANIMATION_SPEED = 0.7; 
+
+
+for (i = 1; i <= TOTAL_FRAMES; i++) {
+    if (i < 10)
+        frame_name = "frame_0" + i + ".png";
+    else
+        frame_name = "frame_" + i + ".png";
+
+    images[i] = Image(frame_name);
+}
+
+
+progress = 1.0; # Küsuratlı hesaplama için ondalıklı başlattık
+sprite = Sprite(images[1]);
+
+logo_x = Window.GetWidth() / 2 - images[1].GetWidth() / 2;
+logo_y = Window.GetHeight() / 2 - images[1].GetHeight() / 2;
+sprite.SetPosition(logo_x, logo_y);
+
+
+fun refresh_callback () {
+    # Math.Int kullanarak ilerleme değerini tam sayıya yuvarlayıp görseli seçiyoruz
+    current_frame = Math.Int(progress);
+    sprite.SetImage(images[current_frame]);
+    
+    
+    progress += ANIMATION_SPEED;
+
+  
+    if (progress > TOTAL_FRAMES) {
+        progress = INTRO_END;
+    }
+}
+
+Plymouth.SetRefreshFunction(refresh_callback);
