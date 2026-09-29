@@ -1,0 +1,14 @@
+[Unit]
+Description=Initialize the Alcor Algol environment
+After=network-online.target
+Before=display-manager.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/alcor-firstboot
+TimeoutStartSec=infinity
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
