@@ -107,4 +107,4 @@ configure_blackarch_repo
 
 install_selected_packages
 
-log "'algol' environment, BlackArch repo, and selected packages successfully deployed."
+log "'algol' environment, BlackArch repo, and selected packages successfully deployed!"
