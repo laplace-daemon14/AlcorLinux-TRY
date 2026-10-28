@@ -1,0 +1,129 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+LOG_FILE="/var/log/alcor-firstboot.log"
+INITIALIZED_MARKER="/var/lib/alcor/initialized"
+SELECTION_FILE="/etc/alcor/selection.txt"
+
+install -d -m 0755 /var/log
+exec > >(tee -a "$LOG_FILE" | systemd-cat -t alcor-firstboot) 2>&1
+
+enable_graphical_desktop() {
+    echo "[*] [Alcor] Enabling the graphical desktop."
+    systemctl set-default graphical.target
+    systemctl enable --now lightdm.service
+}
+
+enable_graphical_desktop
+
+has_internet_connection() {
+    if command -v curl >/dev/null 2>&1; then
+        curl --silent --show-error --fail --location --head \
+            --connect-timeout 2 --max-time 3 \
+            --output /dev/null https://blackarch.org/
+    elif command -v wget >/dev/null 2>&1; then
+        wget --quiet --spider --timeout=3 https://blackarch.org/
+    elif command -v timeout >/dev/null 2>&1; then
+        timeout 2 bash -c 'exec 3<>/dev/tcp/blackarch.org/443' >/dev/null 2>&1
+    elif command -v ping >/dev/null 2>&1; then
+        ping -c 1 -W 1 1.1.1.1 >/dev/null 2>&1
+    else
+        echo "[!] [Alcor] Cannot check internet connectivity: curl, wget, timeout, and ping are unavailable." >&2
+        return 1
+    fi
+}
+
+if ! has_internet_connection; then
+    echo "[*] [Alcor] Internet is unavailable; retrying the connectivity check in 30 seconds. LightDM can start normally."
+    exit 0
+fi
+
+ALCOR_USER="$(getent passwd | awk -F: '$3 >= 1000 && $3 < 60000 && $1 != "nobody" && $1 != "alcor" { print $1; exit }')"
+if [[ -z "$ALCOR_USER" ]]; then
+    echo "[!] [Alcor] No installed regular user other than the Live 'alcor' account was found." >&2
+    exit 1
+fi
+
+USER_HOME="$(getent passwd "$ALCOR_USER" | cut -d: -f6)"
+ALCOR_UID="$(id -u "$ALCOR_USER")"
+if [[ ! -x /usr/local/bin/algol-init ]]; then
+    echo "[!] [Alcor] algol-init is not installed or executable at /usr/local/bin/algol-init." >&2
+    exit 1
+fi
+if ! command -v distrobox-create >/dev/null 2>&1 || \
+   ! command -v distrobox-enter >/dev/null 2>&1 || \
+   ! command -v podman >/dev/null 2>&1; then
+    echo "[!] [Alcor] Distrobox/Podman host commands are missing; refusing to route packages to the host as a fallback." >&2
+    exit 1
+fi
+
+if command -v loginctl >/dev/null 2>&1; then
+    loginctl enable-linger "$ALCOR_USER"
+fi
+systemctl start "user@${ALCOR_UID}.service"
+USER_RUNTIME_DIR="/run/user/$ALCOR_UID"
+for attempt in {1..30}; do
+    [[ -d "$USER_RUNTIME_DIR" ]] && break
+    sleep 1
+done
+if [[ ! -d "$USER_RUNTIME_DIR" ]]; then
+    echo "[!] [Alcor] Rootless container runtime directory was not created for $ALCOR_USER." >&2
+    exit 1
+fi
+
+run_as_alcor_user() {
+    runuser -u "$ALCOR_USER" -- env \
+        HOME="$USER_HOME" \
+        USER="$ALCOR_USER" \
+        LOGNAME="$ALCOR_USER" \
+        XDG_RUNTIME_DIR="$USER_RUNTIME_DIR" \
+        DBUS_SESSION_BUS_ADDRESS="unix:path=$USER_RUNTIME_DIR/bus" \
+        "$@"
+}
+
+if [[ -e "$INITIALIZED_MARKER" ]]; then
+    if run_as_alcor_user distrobox list | grep -qw algol; then
+        echo "[+] [Alcor] First-boot setup is already complete and the algol container exists."
+        systemctl disable --now alcor-firstboot.timer
+        exit 0
+    fi
+    echo "[!] [Alcor] Removing a stale initialization marker because the algol container is missing."
+    rm -f "$INITIALIZED_MARKER"
+fi
+
+HOST_PACKAGE_QUEUE="$(mktemp /run/alcor-host-packages.XXXXXX)"
+chown "$ALCOR_USER" "$HOST_PACKAGE_QUEUE"
+chmod 0600 "$HOST_PACKAGE_QUEUE"
+trap 'rm -f "$HOST_PACKAGE_QUEUE"' EXIT
+
+echo "[*] [Alcor] Running algol-init automatically as '$ALCOR_USER'."
+run_as_alcor_user \
+    ALCOR_SELECTION_FILE="$SELECTION_FILE" \
+    ALCOR_HOST_PACKAGE_QUEUE="$HOST_PACKAGE_QUEUE" \
+    /usr/local/bin/algol-init
+
+if ! run_as_alcor_user distrobox list | grep -qw algol; then
+    echo "[!] [Alcor] algol-init returned successfully but the 'algol' container is not present." >&2
+    exit 1
+fi
+
+mapfile -t HOST_PACKAGES < "$HOST_PACKAGE_QUEUE"
+if (( ${#HOST_PACKAGES[@]} > 0 )); then
+    echo "[*] [Alcor] Installing host-target packages with system privileges: ${HOST_PACKAGES[*]}"
+    /usr/bin/pacman -S --needed --noconfirm "${HOST_PACKAGES[@]}"
+fi
+
+if getent passwd alcor >/dev/null; then
+    echo "[*] [Alcor] Removing the leftover Live 'alcor' user account; preserving its home directory."
+    if ! userdel alcor; then
+        echo "[!] [Alcor] Failed to remove the leftover Live 'alcor' account." >&2
+        exit 1
+    fi
+fi
+pacman -S --needed --noconfirm os-prober
+sed -i 's/GRUB_DISABLE_OS_PROBER=true/GRUB_DISABLE_OS_PROBER=false/' /etc/default/grub
+grub-mkconfig -o /boot/grub/grub.cfg
+install -d /var/lib/alcor
+touch "$INITIALIZED_MARKER"
+systemctl disable --now alcor-firstboot.timer
+echo "[+] [Alcor] First-boot setup completed."

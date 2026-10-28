@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=SQLMap API (Algol)
+Comment=Open sqlmapapi help in the Algol terminal
+TryExec=xfce4-terminal
+Exec=xfce4-terminal --hold --execute "/home/laplace/.local/bin/sqlmapapi" -h
+Terminal=false
+Categories=SiberDatabase;

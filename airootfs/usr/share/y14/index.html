@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Scarry Terminal</title>
+  <style>
+    :root{
+      --bg:#000000;
+      --term:#050505;
+      --accent:#66ff66;
+      --red:#ff4444;
+    }
+    *{box-sizing:border-box;font-family:Consolas,monospace}
+    html,body,#root{height:100%}
+    body{margin:0;background:#000;color:var(--accent);height:100vh;overflow:hidden}
+    .ascii-bg{position:fixed;left:50%;top:32%;transform:translate(-50%,-50%);font-family:monospace;white-space:pre;z-index:0;color:#111;opacity:0.06;font-size:72px;line-height:0.7;pointer-events:none;letter-spacing:4px}
+    .wrap{position:relative;z-index:3;max-width:1200px;margin:40px auto;padding:20px;width:calc(100% - 40px)}
+    .top-banner{position:fixed;top:0;left:0;right:0;padding:12px 24px;background:#100000;color:#fff;z-index:10;display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #700000;box-shadow:0 6px 20px rgba(0,0,0,0.7)}
+    .top-banner .fatal{font-size:15px;letter-spacing:2px;text-transform:uppercase;color:#ff4a4a;font-weight:900}
+    .top-banner .error-code{font-size:13px;color:#f6a6a6}
+    .wallpaper{position:fixed;inset:0;background:url('wallpaper.png') center/cover no-repeat;opacity:0;filter:grayscale(0.95) blur(18px);background-size:120%;transition:opacity 2.5s ease, filter 2.5s ease, transform 2.5s ease;pointer-events:none;z-index:1;transform:scale(1.04)}
+    .wallpaper.visible{opacity:0.55;filter:grayscale(0.45) blur(6px);transform:scale(1.02)}
+    .wallpaper.sharp{opacity:0.95;filter:grayscale(0) blur(0);transform:scale(1);transition:opacity 1.5s ease, filter 1.5s ease, transform 1.5s ease}
+    .countdown-overlay{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(0.9);padding:30px 40px;border:4px dashed rgba(255,0,0,0.9);border-radius:18px;color:#ff4a4a;font-size:42px;font-weight:900;text-align:center;text-transform:uppercase;letter-spacing:3px;background:rgba(0,0,0,0.78);text-shadow:0 0 32px rgba(255,0,0,0.5);z-index:8;pointer-events:none;opacity:0;transition:opacity 0.2s ease, transform 0.2s ease}
+    .countdown-overlay.active{opacity:1;transform:translate(-50%,-50%) scale(1.02) rotate(360deg);animation:overlay-pulse 1.2s ease-in-out infinite}
+    .countdown-overlay span{display:block;font-size:72px;letter-spacing:8px;margin-top:8px;color:#fff}
+    @keyframes overlay-pulse{0%{transform:translate(-50%,-50%) scale(1)}50%{transform:translate(-50%,-50%) scale(1.04)}100%{transform:translate(-50%,-50%) scale(1)} }
+    .controls h1{margin:0 0 8px 0}
+    .hint{color:#9aa;opacity:0.9}
+    .terminal{background:linear-gradient(180deg,#040404,#080808);padding:20px;border-radius:8px;min-height:360px;outline:none;box-shadow:inset 0 0 40px rgba(255,0,0,0.02);font-size:18px;color:var(--accent);border:1px solid rgba(102,255,102,0.06);z-index:4}
+    .lines{height:240px;overflow:auto;padding-bottom:8px;font-size:18px}
+    .line{padding:2px 0;opacity:0.98}
+    .line.error{color:#ff4c4c;font-weight:900;text-shadow:0 0 18px rgba(255,80,80,0.45)}
+    .prompt{display:flex;gap:8px;align-items:center;margin-top:10px;font-weight:600}
+    .prefix{color:#9ae69a}
+    .cmd{min-height:1em;color:var(--accent)}
+    .cursor{animation:blink 1s steps(2) infinite;color:var(--accent)}
+    @keyframes blink{50%{opacity:0}}
+
+    .glitch{animation:glitch 0.28s steps(2) infinite}
+    @keyframes glitch{
+      0%{transform:translate(0,0);text-shadow:0 0 1px rgba(255,255,255,0.02)}
+      20%{transform:translate(-1px,0) skewX(-1deg);text-shadow:-2px 0 6px rgba(255,0,0,0.6)}
+      40%{transform:translate(1px,0) skewX(1deg);text-shadow:2px 0 6px rgba(0,255,0,0.6)}
+      60%{transform:translate(-1px,0)}
+      80%{transform:translate(0,0)}
+      100%{transform:translate(0,0)}
+    }
+
+    .mini-terminal{position:fixed;right:20px;bottom:20px;width:260px;padding:12px;background:#0e0e0e;border-radius:6px;color:#eee;z-index:7;box-shadow:0 6px 24px rgba(0,0,0,0.6);font-weight:700;transition:top 0.4s ease,left 0.4s ease,right 0.4s ease,bottom 0.4s ease,transform 0.4s ease}
+    .mini-terminal.moving{animation:wiggle 2s ease-in-out infinite}
+    .hidden{display:none}
+    .popups{position:fixed;left:10px;top:10px;pointer-events:none;z-index:6}
+    .popup{position:absolute;background:rgba(32,0,0,0.96);color:#ffbaba;border:2px solid rgba(255,80,80,0.95);padding:10px 14px;font-weight:800;border-radius:10px;animation:float-spin 4s linear infinite;mix-blend-mode:screen;box-shadow:0 0 22px rgba(255,0,0,0.3);backdrop-filter:blur(2px)}
+    .popup.large{font-size:18px;padding:14px 18px;border-width:3px}
+    .popup.moving{animation:float-spin 4s linear infinite, drift 6s ease-in-out infinite}
+    @keyframes float-spin{0%{transform:translateY(0) rotate(0deg)}25%{transform:translateY(-4px) rotate(2deg)}50%{transform:translateY(0) rotate(0deg)}75%{transform:translateY(4px) rotate(-2deg)}100%{transform:translateY(0) rotate(0deg)}}
+    @keyframes drift{0%{transform:translateX(0) translateY(0)}25%{transform:translateX(8px) translateY(-6px)}50%{transform:translateX(0) translateY(0)}75%{transform:translateX(-8px) translateY(6px)}100%{transform:translateX(0) translateY(0)}}
+    @keyframes popup-fade-fast{0%{opacity:0;transform:translateX(-16px) scale(0.9)}20%{opacity:1;transform:translateX(0) scale(1)}100%{opacity:0;transform:translateX(16px) scale(1.05)}}
+
+    .jumpscare{position:fixed;inset:0;background:#000 url('jump.png') center/cover no-repeat;z-index:9999;pointer-events:auto}
+    .jumpscare.hidden{display:none}
+    .jumpscare:not(.hidden){animation:shock 0.15s ease infinite}
+    
+    @keyframes shock{
+      0%{transform:scale(1) translate(0, 0)}
+      25%{transform:scale(1.05) translate(-4px, 3px)}
+      50%{transform:scale(1) translate(4px, -3px)}
+      75%{transform:scale(1.03) translate(-2px, -2px)}
+      100%{transform:scale(1) translate(0, 0)}
+    }
+
+    body.flash{animation:flash-bg .3s steps(2) 4}
+    @keyframes flash-bg{0%{background:#000}50%{background:#ff0000}100%{background:#000}}
+  </style>
+</head>
+<body>
+
+  <div class="top-banner">
+    <div class="fatal">[ FATAL://SYSTEM CRASH ]</div>
+    <div class="error-code">ERROR_CODE: Y14_IS_WATCH_YOU</div>
+  </div>
+
+  <div class="wallpaper"></div>
+
+  <div class="wrap">
+    <div class="controls">
+      <h1>Y-14 Terminal</h1>
+    </div>
+
+    <div id="terminal" class="terminal" tabindex="0">
+      <div id="term-lines" class="lines">
+        <div class="line">Welcome to Y-14.</div>
+      </div>
+      <div class="prompt">
+        <span class="prefix">A?14@Y14:~$</span>
+        <span id="cmd" class="cmd"></span><span id="cursor" class="cursor">█</span>
+      </div>
+    </div>
+  </div>
+
+  <div id="term2" class="mini-terminal hidden" aria-hidden="true">
+    <div>PROCESS MONITOR</div>
+    <div id="term2-lines">395 seconds left</div>
+  </div>
+
+  <div id="popups" class="popups"></div>
+
+
+  <div id="jumpscare" class="jumpscare hidden" aria-hidden="true"></div>
+
+  <audio id="bg-audio" src="jeopardy-think-music_-but-its-very-very-loud-_fnaf-weird-mobile-port-ost-recreation_.ogg"></audio>
+  <audio id="jumpscare-audio" src="jumpscare.ogg"></audio>
+
+  <script>
+    const term = document.getElementById('terminal')
+    const cmdEl = document.getElementById('cmd')
+    const cursor = document.getElementById('cursor')
+    const lines = document.getElementById('term-lines')
+    const term2 = document.getElementById('term2')
+    const term2Lines = document.getElementById('term2-lines')
+    const popups = document.getElementById('popups')
+    const jumpscare = document.getElementById('jumpscare')
+    const bgAudio = document.getElementById('bg-audio')
+    const jumpAudio = document.getElementById('jumpscare-audio')
+    const wallpaper = document.querySelector('.wallpaper')
+
+    let buffer = ''
+    let locked = false
+    let popupInterval = null
+    let term2MoveInterval = null
+    let countdownTimer = null
+    const FIXED_COMMAND = 'I WATCH YOU Y14.'
+
+    function appendLine(text, extraClass){
+      const d = document.createElement('div')
+      d.className = 'line'
+      d.textContent = text
+      if(extraClass){ d.classList.add(extraClass) }
+      lines.appendChild(d)
+      lines.scrollTop = lines.scrollHeight
+
+      if(Math.random() < 0.18){
+        d.classList.add('glitch')
+        setTimeout(()=>d.classList.remove('glitch'), 300 + Math.random()*900)
+      }
+    }
+
+    term.addEventListener('keydown', e=>{
+      if(locked) return
+      e.preventDefault()
+      if(e.key === 'Enter'){
+        executeCommand(buffer)
+        buffer = ''
+        cmdEl.textContent = ''
+        return
+      }
+      if(e.key === 'Backspace'){
+        buffer = buffer.slice(0,-1)
+        cmdEl.textContent = FIXED_COMMAND.slice(0, buffer.length)
+        return
+      }
+      if(e.key.length === 1){
+        buffer += e.key
+        cmdEl.textContent = FIXED_COMMAND.slice(0, buffer.length)
+      }
+    })
+
+    term.addEventListener('focus', ()=>cursor.style.display='inline')
+    term.addEventListener('blur', ()=>cursor.style.display='none')
+
+    function executeCommand(cmd){
+      if(!cmd) return
+      appendLine('user@scarry:~$ ' + FIXED_COMMAND)
+      if(cmd.length > 0){
+        startScareSequence()
+      }
+    }
+
+    function spawnPopup(text){
+      const p = document.createElement('div')
+      p.className = 'popup moving'
+      p.textContent = text
+      const x = Math.random() * (window.innerWidth - 260)
+      const y = Math.random() * (window.innerHeight - 140)
+      p.style.left = x + 'px'
+      p.style.top = y + 'px'
+      p.style.fontSize = `${14 + Math.random()*12}px`
+      p.style.borderColor = `rgba(255, ${60 + Math.random()*120}, 60, 0.95)`
+      p.style.animationDuration = `${3 + Math.random()*2}s`
+      popups.appendChild(p)
+      if(popups.childElementCount > 60){ popups.removeChild(popups.firstChild) }
+    }
+
+    function spawnEdgePopup(text){
+      const p = document.createElement('div')
+      p.className = 'popup large moving'
+      p.textContent = text
+      const edge = Math.floor(Math.random() * 4)
+      const offset = 40 + Math.random() * 80
+      if(edge === 0){ p.style.top = offset + 'px'; p.style.left = '10px' }
+      if(edge === 1){ p.style.top = offset + 'px'; p.style.right = '10px' }
+      if(edge === 2){ p.style.bottom = offset + 'px'; p.style.left = '10px' }
+      if(edge === 3){ p.style.bottom = offset + 'px'; p.style.right = '10px' }
+      p.style.fontSize = `${18 + Math.random()*14}px`
+      p.style.opacity = 0.97
+      p.style.animation = 'popup-fade-fast 1.2s ease forwards, drift 4s ease-in-out infinite'
+      popups.appendChild(p)
+      if(popups.childElementCount > 70){ popups.removeChild(popups.firstChild) }
+    }
+
+    function showWallpaper(){
+      if(!wallpaper) return
+      wallpaper.classList.add('visible')
+    }
+
+    function startScareSequence(){
+      locked = true
+      appendLine('YOU KNOW US...', 'error')
+      appendLine('YOU ARE IDIOT', 'error')
+      term2.classList.remove('hidden')
+      term2.setAttribute('aria-hidden','false')
+      if(bgAudio && bgAudio.src){
+        bgAudio.loop = true
+        bgAudio.volume = 0.15
+        bgAudio.play().catch(()=>{})
+      }
+      const total = 30 * 1000
+      const start = performance.now()
+      function ease(t){ return t*t }
+      function step(now){
+        const t = Math.min(1,(now-start)/total)
+        const r = 0.6 + 2.4 * ease(t)
+        if(bgAudio){ bgAudio.playbackRate = r; bgAudio.volume = Math.min(1, 0.15 + 0.85 * ease(t)) }
+        const remaining = Math.max(0, Math.round(395 * (1 - ease(t))))
+        term2Lines.textContent = remaining + ' seconds left'
+        if(t > 0.32 && wallpaper){ wallpaper.classList.add('visible') }
+        if(t > 0.72 && wallpaper){ wallpaper.classList.add('sharp') }
+        if(t < 1){
+          requestAnimationFrame(step)
+        } else {
+          if(bgAudio){ bgAudio.pause(); bgAudio.currentTime = 0 }
+          if(countdownTimer){ clearInterval(countdownTimer) }
+          setTimeout(()=>triggerJumpscare(), 300)
+        }
+      }
+      requestAnimationFrame(step)
+      showWallpaper()
+      startTerm2Movement()
+      const scaryLines = [
+        'PROCESS KILLED: 0',
+        'ACCESS DENIED',
+        'ERROR: MEMORY CORRUPTED',
+        'ACCESS DENIED',
+        'MEMORY FAULT DETECTED',
+        'SECURITY BREACH',
+        'SYSTEM MALFUNCTION'
+      ]
+      let i=0
+      popupInterval = setInterval(()=>{
+        const line = scaryLines[Math.floor(Math.random()*scaryLines.length)]
+        appendLine(line, 'error')
+        spawnPopup(line)
+        if(Math.random() < 0.75) spawnEdgePopup(line)
+        if(i % 3 === 0) spawnPopup('YOU ARE IDIOT')
+        if(i % 5 === 0) spawnEdgePopup('PROCESS MONITOR 395s LEFT')
+        i++
+        if(i > 55){ clearInterval(popupInterval) }
+      }, 450)
+    }
+
+    function startTerm2Movement(){
+      if(term2MoveInterval){ clearInterval(term2MoveInterval) }
+      term2.classList.add('moving')
+      term2MoveInterval = setInterval(()=>{
+        const positions = [
+          {top:'20px', left:'20px', right:'', bottom:''},
+          {top:'20px', right:'20px', left:'', bottom:''},
+          {bottom:'20px', left:'20px', right:'', top:''},
+          {bottom:'20px', right:'20px', left:'', top:''}
+        ]
+        const pos = positions[Math.floor(Math.random()*positions.length)]
+        term2.style.top = pos.top || ''
+        term2.style.left = pos.left || ''
+        term2.style.right = pos.right || ''
+        term2.style.bottom = pos.bottom || ''
+      }, 900)
+    }
+
+    function triggerJumpscare(){
+      jumpscare.classList.remove('hidden')
+      jumpscare.setAttribute('aria-hidden','false')
+      document.body.classList.add('flash')
+      if(jumpAudio){
+        jumpAudio.currentTime = 0
+        jumpAudio.volume = 1
+        jumpAudio.play().catch(err => console.log("Ses çalma engellendi:", err))
+      }
+      appendLine('*** SYSTEM DELETED ***', 'error')
+    }
+    setTimeout(()=>term.focus(),200)
+  </script>
+</body>
+</html>

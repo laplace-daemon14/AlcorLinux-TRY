@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=SQLmap (Algol)
+Comment=Open sqlmap help in the Algol terminal
+TryExec=xfce4-terminal
+Exec=xfce4-terminal --hold --execute "/home/laplace/.local/bin/sqlmap" -h
+Terminal=false
+Categories=SiberWeb;

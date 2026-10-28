@@ -1,0 +1,77 @@
+<!DOCTYPE Menu PUBLIC "-//freedesktop//DTD Menu 1.0//EN"
+ "http://www.freedesktop.org/standards/menu-spec/1.0/menu.dtd">
+
+<Menu>
+    <Name>Xfce</Name>
+    <MergeFile type="parent">/etc/xdg/menus/xfce-applications.menu</MergeFile>
+    <Menu>
+        <Name>Algol Tools</Name>
+        <Directory>siber-algol.directory</Directory>
+        <Include><Category>SiberAlgol</Category></Include>
+    </Menu>
+    <Menu>
+        <Name>Information Gathering</Name>
+        <Directory>siber-bilgi.directory</Directory>
+        <Include><Category>SiberBilgi</Category></Include>
+    </Menu>
+    <Menu>
+        <Name>Vulnerability Analysis</Name>
+        <Directory>siber-zafiyet.directory</Directory>
+        <Include><Category>SiberZafiyet</Category></Include>
+    </Menu>
+    <Menu>
+        <Name>Web Application Analysis</Name>
+        <Directory>siber-web.directory</Directory>
+        <Include><Category>SiberWeb</Category></Include>
+    </Menu>
+    <Menu>
+        <Name>Database Assessment</Name>
+        <Directory>siber-database.directory</Directory>
+        <Include><Category>SiberDatabase</Category></Include>
+    </Menu>
+    <Menu>
+        <Name>Password Attacks</Name>
+        <Directory>siber-sifre.directory</Directory>
+        <Include><Category>SiberSifre</Category></Include>
+    </Menu>
+    <Menu>
+        <Name>Wireless Attacks</Name>
+        <Directory>siber-wireless.directory</Directory>
+        <Include><Category>SiberWireless</Category></Include>
+    </Menu>
+    <Menu>
+        <Name>Reverse Engineering</Name>
+        <Directory>siber-reverse.directory</Directory>
+        <Include><Category>SiberReverse</Category></Include>
+    </Menu>
+    <Menu>
+        <Name>Exploitation Tools</Name>
+        <Directory>siber-exploitation.directory</Directory>
+        <Include><Category>SiberExploitation</Category></Include>
+    </Menu>
+    <Menu>
+        <Name>Sniffing &amp; Spoofing</Name>
+        <Directory>siber-sniffing.directory</Directory>
+        <Include><Category>SiberSniffing</Category></Include>
+    </Menu>
+    <Menu>
+        <Name>Post Exploitation</Name>
+        <Directory>siber-post.directory</Directory>
+        <Include><Category>SiberPost</Category></Include>
+    </Menu>
+    <Menu>
+        <Name>Forensics</Name>
+        <Directory>siber-forensics.directory</Directory>
+        <Include><Category>SiberForensics</Category></Include>
+    </Menu>
+    <Menu>
+        <Name>Reporting Tools</Name>
+        <Directory>siber-reporting.directory</Directory>
+        <Include><Category>SiberReporting</Category></Include>
+    </Menu>
+    <Menu>
+        <Name>Social Engineering Tools</Name>
+        <Directory>siber-social.directory</Directory>
+        <Include><Category>SiberSocial</Category></Include>
+    </Menu>
+</Menu>

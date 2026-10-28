@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Amass (Algol)
+Comment=Open amass help in the Algol terminal
+TryExec=xfce4-terminal
+Exec=xfce4-terminal --hold --execute "/home/laplace/.local/bin/amass" -h
+Terminal=false
+Categories=SiberBilgi;

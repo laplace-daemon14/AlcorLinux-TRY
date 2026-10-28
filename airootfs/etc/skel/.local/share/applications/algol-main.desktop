@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Algol Console
+Comment=Algol Distrobox Ortamı
+Exec=/usr/bin/distrobox enter algol
+Icon=system-run
+Terminal=true
+Categories=SiberAlgol;

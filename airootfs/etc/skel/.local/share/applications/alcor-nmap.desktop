@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Nmap (Algol)
+Comment=Open nmap help in the Algol terminal
+TryExec=xfce4-terminal
+Exec=xfce4-terminal --hold --execute "/home/laplace/.local/bin/nmap" -h
+Terminal=false
+Categories=SiberBilgi;

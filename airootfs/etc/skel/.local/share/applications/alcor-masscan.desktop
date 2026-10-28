@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Masscan (Algol)
+Comment=Open masscan help in the Algol terminal
+TryExec=xfce4-terminal
+Exec=xfce4-terminal --hold --execute "/home/laplace/.local/bin/masscan" -h
+Terminal=false
+Categories=SiberBilgi;

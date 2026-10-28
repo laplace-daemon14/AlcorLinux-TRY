@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Subfinder (Algol)
+Comment=Open subfinder help in the Algol terminal
+TryExec=xfce4-terminal
+Exec=xfce4-terminal --hold --execute "/home/laplace/.local/bin/subfinder" -h
+Terminal=false
+Categories=SiberBilgi;

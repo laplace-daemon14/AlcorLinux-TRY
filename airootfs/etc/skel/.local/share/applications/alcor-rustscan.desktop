@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=RustScan (Algol)
+Comment=Open rustscan help in the Algol terminal
+TryExec=xfce4-terminal
+Exec=xfce4-terminal --hold --execute "/home/laplace/.local/bin/rustscan" -h
+Terminal=false
+Categories=SiberBilgi;

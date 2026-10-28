@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Ghidra (Algol)
+Comment=Open ghidra help in the Algol terminal
+TryExec=xfce4-terminal
+Exec=xfce4-terminal --hold --execute "/home/laplace/.local/bin/ghidra" -h
+Terminal=false
+Categories=SiberReverse;

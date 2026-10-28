@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Nuclei (Algol)
+Comment=Open nuclei help in the Algol terminal
+TryExec=xfce4-terminal
+Exec=xfce4-terminal --hold --execute "/home/laplace/.local/bin/nuclei" -h
+Terminal=false
+Categories=SiberZafiyet;

@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=DNSRecon (Algol)
+Comment=Open dnsrecon help in the Algol terminal
+TryExec=xfce4-terminal
+Exec=xfce4-terminal --hold --execute "/home/laplace/.local/bin/dnsrecon" -h
+Terminal=false
+Categories=SiberBilgi;

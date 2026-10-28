@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=REST DNSRecon (Algol)
+Comment=Open restdnsrecon help in the Algol terminal
+TryExec=xfce4-terminal
+Exec=xfce4-terminal --hold --execute "/home/laplace/.local/bin/restdnsrecon" -h
+Terminal=false
+Categories=SiberBilgi;
